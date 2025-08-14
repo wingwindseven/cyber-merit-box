@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博功德箱 - Cyber Merit Box</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 背景动画 */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 215, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 215, 0, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* 主容器 */
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        /* 标题 */
+        .title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* 功德显示 */
+        .merit-display {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .merit-display::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            border-radius: 20px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
+        }
+
+        .merit-display.glowing::before {
+            opacity: 1;
+            animation: borderGlow 1s ease-out;
+        }
+
+        @keyframes borderGlow {
+            0% { opacity: 0; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        .merit-label {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+        }
+
+        .merit-count {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            transition: transform 0.3s;
+        }
+
+        .merit-count.pulse {
+            animation: countPulse 0.5s ease-out;
+        }
+
+        @keyframes countPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* 等级显示 */
+        .level-display {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            margin-left: 0.5rem;
+            font-weight: bold;
+        }
+
+        /* 功德按钮 */
+        .merit-button {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .merit-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+        }
+
+        .merit-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 金光粒子效果 */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1000;
+        }
+
+        .particle.active {
+            animation: particleFloat 2s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(var(--x), var(--y)) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(var(--x) * 2), calc(var(--y) * 2)) scale(0);
+            }
+        }
+
+        /* 金光爆炸效果 */
+        .light-burst {
+            position: fixed;
+            pointer-events: none;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.8) 0%, rgba(255, 215, 0, 0) 70%);
+            opacity: 0;
+            z-index: 999;
+        }
+
+        .light-burst.active {
+            animation: lightBurst 0.8s ease-out forwards;
+        }
+
+        @keyframes lightBurst {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+
+        /* 成就提示 */
+        .achievement {
+            position: fixed;
+            top: 50px;
+            right: -400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: right 0.5s ease-out;
+            z-index: 1001;
+        }
+
+        .achievement.show {
+            right: 50px;
+        }
+
+        .achievement h3 {
+            color: #ffd700;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement p {
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        /* 统计信息 */
+        .stats {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.3rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .merit-button {
+                width: 150px;
+                height: 150px;
+                font-size: 1.5rem;
+            }
+            
+            .merit-count {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="grid-overlay"></div>
+    
+    <div class="container">
+        <h1 class="title">赛博功德箱</h1>
+        <p class="subtitle">点击积累功德，解锁神秘力量</p>
+        
+        <div class="merit-display" id="meritDisplay">
+            <div class="merit-label">当前功德</div>
+            <div class="merit-count" id="meritCount">0</div>
+            <div class="level-display">
+                等级 <span class="level-badge" id="levelBadge">凡人</span>
+            </div>
+        </div>
+        
+        <button class="merit-button" id="meritButton">
+            积累<br>功德
+        </button>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="clickCount">0</div>
+                <div class="stat-label">点击次数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="multiplier">1</div>
+                <div class="stat-label">功德倍数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalMerit">0</div>
+                <div class="stat-label">总功德</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="achievement" id="achievement">
+        <h3 id="achievementTitle">成就解锁！</h3>
+        <p id="achievementText">恭喜达成新成就</p>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            merit: 0,
+            totalMerit: 0,
+            clickCount: 0,
+            multiplier: 1,
+            level: 0,
+            achievements: new Set()
+        };
+
+        // 等级系统
+        const levels = [
+            { name: '凡人', threshold: 0, multiplier: 1 },
+            { name: '修行者', threshold: 10, multiplier: 1 },
+            { name: '得道者', threshold: 50, multiplier: 2 },
+            { name: '仙人', threshold: 100, multiplier: 3 },
+            { name: '佛陀', threshold: 500, multiplier: 5 },
+            { name: '赛博佛陀', threshold: 1000, multiplier: 10 },
+            { name: '功德无量', threshold: 5000, multiplier: 20 }
+        ];
+
+        // 成就系统
+        const achievements = [
+            { id: 'first_click', title: '初入佛门', text: '完成第一次积累功德', threshold: 1 },
+            { id: 'ten_merit', title: '小有成就', text: '积累10点功德', threshold: 10 },
+            { id: 'hundred_merit', title: '功德圆满', text: '积累100点功德', threshold: 100 },
+            { id: 'thousand_merit', title: '功德无量', text: '积累1000点功德', threshold: 1000 },
+            { id: 'click_master', title: '点击大师', text: '点击100次', threshold: 100 },
+            { id: 'zen_master', title: '禅宗大师', text: '点击500次', threshold: 500 }
+        ];
+
+        // DOM元素
+        const meritCount = document.getElementById('meritCount');
+        const meritButton = document.getElementById('meritButton');
+        const meritDisplay = document.getElementById('meritDisplay');
+        const levelBadge = document.getElementById('levelBadge');
+        const clickCount = document.getElementById('clickCount');
+        const multiplier = document.getElementById('multiplier');
+        const totalMerit = document.getElementById('totalMerit');
+        const achievement = document.getElementById('achievement');
+        const achievementTitle = document.getElementById('achievementTitle');
+        const achievementText = document.getElementById('achievementText');
+
+        // 创建粒子效果
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.innerHTML = '✨';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.fontSize = Math.random() * 20 + 20 + 'px';
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 200 + 100;
+            particle.style.setProperty('--x', Math.cos(angle) * distance + 'px');
+            particle.style.setProperty('--y', Math.sin(angle) * distance + 'px');
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.classList.add('active');
+            }, 10);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 2000);
+        }
+
+        // 创建金光爆炸效果
+        function createLightBurst(x, y) {
+            const burst = document.createElement('div');
+            burst.className = 'light-burst';
+            burst.style.left = x + 'px';
+            burst.style.top = y + 'px';
+            
+            document.body.appendChild(burst);
+            
+            setTimeout(() => {
+                burst.classList.add('active');
+            }, 10);
+            
+            setTimeout(() => {
+                burst.remove();
+            }, 800);
+        }
+
+        // 显示成就
+        function showAchievement(ach) {
+            achievementTitle.textContent = ach.title;
+            achievementText.textContent = ach.text;
+            achievement.classList.add('show');
+            
+            setTimeout(() => {
+                achievement.classList.remove('show');
+            }, 3000);
+        }
+
+        // 检查成就
+        function checkAchievements() {
+            achievements.forEach(ach => {
+                if (!gameState.achievements.has(ach.id)) {
+                    let achieved = false;
+                    
+                    if (ach.id === 'first_click' && gameState.clickCount >= 1) achieved = true;
+                    else if (ach.id === 'ten_merit' && gameState.totalMerit >= 10) achieved = true;
+                    else if (ach.id === 'hundred_merit' && gameState.totalMerit >= 100) achieved = true;
+                    else if (ach.id === 'thousand_merit' && gameState.totalMerit >= 1000) achieved = true;
+                    else if (ach.id === 'click_master' && gameState.clickCount >= 100) achieved = true;
+                    else if (ach.id === 'zen_master' && gameState.clickCount >= 500) achieved = true;
+                    
+                    if (achieved) {
+                        gameState.achievements.add(ach.id);
+                        showAchievement(ach);
+                    }
+                }
+            });
+        }
+
+        // 更新等级
+        function updateLevel() {
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (gameState.totalMerit >= levels[i].threshold) {
+                    if (gameState.level !== i) {
+                        gameState.level = i;
+                        gameState.multiplier = levels[i].multiplier;
+                        levelBadge.textContent = levels[i].name;
+                        multiplier.textContent = gameState.multiplier;
+                        
+                        // 升级特效
+                        meritDisplay.classList.add('glowing');
+                        setTimeout(() => {
+                            meritDisplay.classList.remove('glowing');
+                        }, 1000);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            meritCount.textContent = gameState.merit;
+            clickCount.textContent = gameState.clickCount;
+            totalMerit.textContent = gameState.totalMerit;
+        }
+
+        // 点击事件
+        meritButton.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            // 增加功德
+            gameState.merit += gameState.multiplier;
+            gameState.totalMerit += gameState.multiplier;
+            gameState.clickCount++;
+            
+            // 更新显示
+            updateDisplay();
+            updateLevel();
+            checkAchievements();
+            
+            // 动画效果
+            meritCount.classList.add('pulse');
+            setTimeout(() => {
+                meritCount.classList.remove('pulse');
+            }, 500);
+            
+            // 创建特效
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createParticle(x + (Math.random() - 0.5) * 100, y + (Math.random() - 0.5) * 100);
+                }, i * 50);
+            }
+            
+            createLightBurst(x, y);
+            
+            // 按钮动画
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 100);
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                meritButton.click();
+            }
+        });
+
+        // 初始化
+        updateDisplay();
+        updateLevel();
+    </script>
+</body>
+</html>

@@ -1,2 +1,16 @@
-# cyber-merit-box
-赛博功德箱 - Cyber Merit Box Game
+# 赛博功德箱
+
+这是一个有趣的赛博朋克风格功德积累游戏。
+
+## 如何游戏
+- 点击金色按钮积累功德
+- 提升等级解锁更高倍数
+- 完成成就获得满足感
+
+## 技术栈
+- HTML5
+- CSS3
+- JavaScript
+
+## 许可证
+MIT License
